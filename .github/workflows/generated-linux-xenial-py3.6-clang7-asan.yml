@@ -383,10 +383,22 @@ jobs:
           unzip -o artifacts.zip
       - name: Output disk space left
         run: |
+          set -eux
           sudo df -H
       - name: Parse ref
         id: parse-ref
         run: .github/scripts/parse_ref.py
+      - name: Fetch Diff
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -eux
+          if [[ -z $PR_NUMBER ]]; then
+            echo not on PR
+          else
+            wget -O pr.diff "https://patch-diff.githubusercontent.com/raw/pytorch/pytorch/pull/$PR_NUMBER.diff"
+            echo "GOT PR"
+          fi
       - name: Test
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
@@ -466,15 +478,6 @@ jobs:
           # Remove any previous test reports if they exist
           rm -f test-reports-*.zip
           zip -r "test-reports-${FILE_SUFFIX}.zip" test -i '*.xml'
-      - uses: actions/upload-artifact@v2
-        name: Store Test Reports
-        if: always()
-        with:
-          name: test-reports-${{ matrix.config }}
-          retention-days: 14
-          if-no-files-found: error
-          path:
-            test-reports-*.zip
       - uses: seemethere/upload-artifact-s3@v3
         name: Store Test Reports on S3
         if: always()

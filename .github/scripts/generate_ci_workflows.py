@@ -14,7 +14,8 @@ YamlShellBool = Literal["''", 1]
 Arch = Literal["windows", "linux"]
 
 DOCKER_REGISTRY = "308535385114.dkr.ecr.us-east-1.amazonaws.com"
-GITHUB_DIR = Path(__file__).resolve().parent.parent
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+GITHUB_DIR = REPO_ROOT / ".github"
 
 WINDOWS_CPU_TEST_RUNNER = "windows.4xlarge"
 WINDOWS_CUDA_TEST_RUNNER = "windows.8xlarge.nvidia.gpu"
@@ -109,7 +110,7 @@ class CIFlowConfig:
 @dataclass
 class CIFlowRuleset:
     version = 'v1'
-    output_file = f'{GITHUB_DIR}/generated-ciflow-ruleset.json'
+    output_file = GITHUB_DIR / "generated-ciflow-ruleset.json"
     label_rules: Dict[str, Set[str]] = field(default_factory=dict)
 
     def add_label_rule(self, labels: Set[str], workflow_name: str) -> None:
@@ -219,7 +220,7 @@ class CIWorkflow:
             output_file.write(content)
             if content[-1] != "\n":
                 output_file.write("\n")
-        print(output_file_path)
+        print(output_file_path.relative_to(REPO_ROOT))
 
 
 WINDOWS_WORKFLOWS = [
